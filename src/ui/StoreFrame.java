@@ -6,28 +6,36 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import data.DataStore;
+import exception.InvalidQuantityException;
 import exception.OutOfStockException;
-import data.ProductCatalog;
 import model.Account;
 import model.Order;
 import model.OrderItem;
 import model.Product;
+import model.Sale;
 
 
 /*
  * The store / home page shown after login.
- *   HOME card : hero from the mockup with SHOP NOW
- *   SHOP card : product grid with section (MEN / WOMEN / KIDS / IT),
- *               category filter and search
+ *   HOME card    : hero from the mockup with SHOP NOW
+ *   SHOP card    : product grid with section (MEN / WOMEN / KIDS / IT),
+ *                  category filter and search
+ *   ORDER card   : current order (quantities, discount, totals)
+ *   PAYMENT card : cash payment, then back to the shop with an empty order
  * The current order is kept in one Order object; ADD TO ORDER puts items in it.
  */
 public class StoreFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
     private static final String HOME = "home";
     private static final String SHOP = "shop";
+    private static final String ORDER = "order";
+    private static final String PAYMENT = "payment";
+    private static final String RECEIPT = "receipt";
     private static final String ALL_CATEGORIES = "ALL CATEGORIES";
     private static final int COLUMNS = 4;
-    private final java.util.List<Product> products = ProductCatalog.create();
+    private OrderEntryPanel orderEntry;
+    private PaymentPanel paymentPanel;
+    private ReceiptPanel receiptPanel;
 
     private final Account cashier;
     private final Order order = new Order();
@@ -46,7 +54,9 @@ public class StoreFrame extends JFrame {
     private String section = null;          // null = all sections
     private boolean updatingCombo = false;  // stops the combo from refreshing while we refill it
 
+
     public StoreFrame(Account cashier) {
+
         this.cashier = cashier;
 
         setTitle("DAMNIT - Store");
@@ -70,6 +80,17 @@ public class StoreFrame extends JFrame {
         center.setOpaque(false);
         center.add(new HeroPanel(() -> showShop(null, true)), HOME);
         center.add(buildShop(), SHOP);
+        orderEntry = new OrderEntryPanel(order,
+                this::updateCartLabel,
+                () -> showShop(section, false),
+                this::goToPayment);
+        center.add(orderEntry, ORDER);
+        paymentPanel = new PaymentPanel(order, cashier,
+                this::showOrder,        // BACK TO ORDER
+                this::onPaid);          // after a successful sale
+        center.add(paymentPanel, PAYMENT);
+        receiptPanel = new ReceiptPanel(() -> showShop(null, true));   // NEW ORDER
+        center.add(receiptPanel, RECEIPT);
         root.add(center, BorderLayout.CENTER);
 
         // Refresh the grid when the person types or picks a category
@@ -108,7 +129,7 @@ public class StoreFrame extends JFrame {
                 txtSearch.requestFocusInWindow();
                 break;
             case "CART":
-                showCart();
+                showOrder();
                 break;
             default:
                 break;
@@ -133,6 +154,7 @@ public class StoreFrame extends JFrame {
     // ---------- Shop view ----------
 
     private JPanel buildShop() {
+
         JPanel shop = new JPanel(new BorderLayout());
         shop.setOpaque(false);
 
@@ -240,6 +262,8 @@ public class StoreFrame extends JFrame {
             updateCartLabel();
         } catch (OutOfStockException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Out of stock", JOptionPane.WARNING_MESSAGE);
+        } catch (InvalidQuantityException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Invalid quantity", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -249,24 +273,34 @@ public class StoreFrame extends JFrame {
         header.setLabelText("CART", qty == 0 ? "CART" : "CART (" + qty + ")");
     }
 
-    /* Temporary summary. Replace with the Order Entry panel in the next step. */
-    private void showCart() {
-        if (order.getItems().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "The order is empty. Add items from the shop.",
-                    "Current order", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        StringBuilder sb = new StringBuilder();
-        for (OrderItem item : order.getItems()) {
-            sb.append(item.getQuantity()).append(" x ").append(item.getProduct().getName())
-              .append("  -  ").append(UITheme.money(item.getLineTotal())).append("\n");
-        }
-        sb.append("\nSubtotal: ").append(UITheme.money(order.getSubtotal()));
-        JOptionPane.showMessageDialog(this, sb.toString(), "Current order", JOptionPane.INFORMATION_MESSAGE);
+    private void showOrder() {
+        header.setActive("CART");
+        orderEntry.refresh();
+        cards.show(center, ORDER);
+    }
+
+    // ---------- Payment ----------
+
+    /* PROCEED TO PAYMENT on the order screen lands here. */
+    private void goToPayment() {
+        header.setActive("CART");
+        paymentPanel.refresh();
+        cards.show(center, PAYMENT);
+    }
+
+    /* Called by PaymentPanel after DataStore.completeSale() succeeded. */
+    private void onPaid(Sale sale) {
+        order.clear();              // otherwise the same items could be paid twice
+        orderEntry.refresh();       // also updates the CART label
+        receiptPanel.show(sale);
+        header.setActive(null);
+        cards.show(center, RECEIPT);
+        // NEW ORDER on the receipt screen calls showShop(), which rebuilds the grid with current stock
     }
 
     /* Panel that always matches the scroll pane's width, so the grid never scrolls sideways. */
     private static class ScrollHolder extends JPanel implements Scrollable {
+        private static final long serialVersionUID = 1L;
         @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
         @Override public int getScrollableUnitIncrement(Rectangle r, int orientation, int direction) { return 24; }
         @Override public int getScrollableBlockIncrement(Rectangle r, int orientation, int direction) { return r.height - 40; }

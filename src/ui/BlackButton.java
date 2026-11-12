@@ -7,6 +7,8 @@ import javax.swing.JButton;
 
 /* Solid black rectangular button, like "SHOP NOW" in the mockup. */
 public class BlackButton extends JButton {
+    private static final long serialVersionUID = 1L;
+    private static final Color DISABLED = new Color(0xC4C3BF);
     private boolean hover = false;
 
     public BlackButton(String text) {
@@ -27,7 +29,8 @@ public class BlackButton extends JButton {
 
     @Override
     protected void paintComponent(Graphics g) {
-        g.setColor(hover ? UITheme.HOVER : UITheme.BLACK);
+        Color fill = !isEnabled() ? DISABLED : (hover ? UITheme.HOVER : UITheme.BLACK);
+        g.setColor(fill);
         g.fillRect(0, 0, getWidth(), getHeight());
         super.paintComponent(g);   // draws the text on top
     }
