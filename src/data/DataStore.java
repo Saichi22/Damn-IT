@@ -12,9 +12,11 @@ public class DataStore {
         cashiers.put("cashier1", "1234");
         cashiers.put("admin", "admin123");
 
-        products.add(new Product("P001", "Americano", "Coffee", 90.0, 50));
-        products.add(new Product("P002", "Cafe Latte", "Coffee", 110.0, 50));
-        products.add(new Product("P003", "Blueberry Muffin", "Pastry", 75.0, 20));
+        products.add(new Product("P001", "Oversized Cotton Tee", "Tops", 450.0, 50));
+        products.add(new Product("P002", "Relaxed Chino Pants", "Bottoms", 1200.0, 30));
+        products.add(new Product("P003", "Heavyweight Pullover Hoodie", "Outerwear", 1500.0, 20));
+        products.add(new Product("P004", "Canvas Tote Bag", "Accessories", 350.0, 40));
+        products.add(new Product("P005", "Vintage Washed Cap", "Accessories", 400.0, 25));
     }
 
     public static boolean login(String user, String pass) {
