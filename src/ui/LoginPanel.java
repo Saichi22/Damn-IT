@@ -40,10 +40,9 @@ public class LoginPanel extends FormPanel {
                 throw new AuthException("Enter your username and password.");
             }
             Account acc = DataStore.login(user, pass);
-            JOptionPane.showMessageDialog(this, "Welcome, " + acc.getFullName() + "!");
-            // TODO: open your MainFrame here, then close this window:
-            // new MainFrame(acc).setVisible(true);
-            // frame.dispose();
+            // JOptionPane.showMessageDialog(this, "Welcome, " + acc.getFullName() + "!");
+            new StoreFrame(acc).setVisible(true);
+             frame.dispose();
         } catch (AuthException ex) {
             showError(ex.getMessage());
         }

@@ -28,12 +28,8 @@ public class DataStore {
                 SECURITY_QUESTIONS[0], "bella"));
         accounts.put("cashier1", new Account("cashier1", "1234567", "Cashier One",
                 SECURITY_QUESTIONS[1], "manila"));
+          products.addAll(ProductCatalog.create());
 
-        products.add(new Product("P001", "Oversized Cotton Tee", "Tops", 450.0, 50));
-        products.add(new Product("P002", "Relaxed Chino Pants", "Bottoms", 1200.0, 30));
-        products.add(new Product("P003", "Heavyweight Pullover Hoodie", "Outerwear", 1500.0, 20));
-        products.add(new Product("P004", "Canvas Tote Bag", "Accessories", 350.0, 40));
-        products.add(new Product("P005", "Vintage Washed Cap", "Accessories", 400.0, 25));
     }
 
     /* Returns the account if credentials are correct, otherwise throws. */

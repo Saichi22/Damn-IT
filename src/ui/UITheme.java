@@ -81,7 +81,9 @@ public final class UITheme {
                 BorderFactory.createMatteBorder(0, 0, 1, 0, BLACK),
                 BorderFactory.createEmptyBorder(6, 2, 6, 2));
     }
- 
+    public static String money(double amount) {
+        return String.format("₱%,.2f", amount);
+    }
     /* Flat input with only a bottom line, matching the minimal mockup. */
     public static void styleField(JTextComponent field) {
         field.setOpaque(false);
