@@ -41,7 +41,7 @@ public class LoginPanel extends FormPanel {
             }
             Account acc = DataStore.login(user, pass);
             // JOptionPane.showMessageDialog(this, "Welcome, " + acc.getFullName() + "!");
-            new StoreFrame(acc).setVisible(true);
+            (acc.isAdmin() ? new AdminFrame(acc) : new StoreFrame(acc)).setVisible(true);
              frame.dispose();
         } catch (AuthException ex) {
             showError(ex.getMessage());

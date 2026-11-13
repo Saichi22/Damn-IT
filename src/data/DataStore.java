@@ -32,7 +32,7 @@ public class DataStore {
 
     static {
         accounts.put("admin", new Account("admin", "admin123", "Store Admin",
-                SECURITY_QUESTIONS[0], "bella"));
+                SECURITY_QUESTIONS[0], "bella", true));
         accounts.put("cashier1", new Account("cashier1", "1234567", "Cashier One",
                 SECURITY_QUESTIONS[1], "manila"));
         products.addAll(ProductCatalog.create());

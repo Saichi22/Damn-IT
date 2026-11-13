@@ -10,15 +10,24 @@ public class Account {
     private String fullName;
     private String securityQuestion;
     private String securityAnswer;
+    private final boolean admin;
 
     public Account(String username, String password, String fullName,
                    String securityQuestion, String securityAnswer) {
+        this(username, password, fullName, securityQuestion, securityAnswer, false);
+    }
+
+    public Account(String username, String password, String fullName,
+                   String securityQuestion, String securityAnswer, boolean admin) {
         this.username = username;
         this.password = password;
         this.fullName = fullName;
         this.securityQuestion = securityQuestion;
         this.securityAnswer = securityAnswer;
+        this.admin = admin;
     }
+
+    public boolean isAdmin() { return admin; }
 
     public String getUsername() { return username; }
     public String getPassword() { return password; }
