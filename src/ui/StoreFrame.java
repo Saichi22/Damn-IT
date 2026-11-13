@@ -31,7 +31,7 @@ public class StoreFrame extends JFrame {
     private static final String ORDER = "order";
     private static final String PAYMENT = "payment";
     private static final String RECEIPT = "receipt";
-    private static final String PROFILE = "profile"; // <-- New Profile constant
+    private static final String PROFILE = "profile"; 
     private static final String ALL_CATEGORIES = "ALL CATEGORIES";
     private static final int COLUMNS = 4;
     private OrderEntryPanel orderEntry;
@@ -92,8 +92,8 @@ public class StoreFrame extends JFrame {
         center.add(paymentPanel, PAYMENT);
         receiptPanel = new ReceiptPanel(() -> showShop(null, true));   // NEW ORDER
         center.add(receiptPanel, RECEIPT);
-        center.add(buildProfile(), PROFILE); // <-- Register Profile card
-        root.add(center, BorderLayout.CENTER); // <-- Keep only one of these!
+        center.add(buildProfile(), PROFILE); 
+        root.add(center, BorderLayout.CENTER); 
 
         // Refresh the grid when the person types or picks a category
         txtSearch.getDocument().addDocumentListener(new DocumentListener() {
@@ -340,7 +340,6 @@ public class StoreFrame extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-                // Subtle watermark brand text
                 g2.setColor(new Color(0x9E9D99));
                 Font brandFont = UITheme.font(Font.BOLD, 11f, 0.35f);
                 g2.setFont(brandFont);
