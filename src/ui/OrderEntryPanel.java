@@ -6,8 +6,6 @@ import java.awt.event.MouseEvent;
 import java.util.EventObject;
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -23,7 +21,7 @@ import model.OrderItem;
 /*
  * Order Entry screen: shows the current order in a table.
  *   - change quantity (the - / + buttons, or double-click the QTY cell and type)
- *   - remove the selected item (button or DELETE key)
+ *   - remove an item (trash icon at the end of its row, or the DELETE key)
  *   - clear the whole order
  * A summary box on the right shows subtotal, discount, tax and total.
  * All changes go through the Order object, so stock checks and
@@ -36,8 +34,9 @@ import model.OrderItem;
  */
 public class OrderEntryPanel extends JPanel {
     private static final long serialVersionUID = 1L;
-    private static final String[] COLUMNS = {"CODE", "ITEM", "PRICE", "QTY", "TOTAL"};
+    private static final String[] COLUMNS = {"CODE", "ITEM", "PRICE", "QTY", "TOTAL", ""};
     private static final int QTY_COLUMN = 3;
+    private static final int DELETE_COLUMN = 5;       // trash icon column
     private static final Color LINE = new Color(0xCFCECA);
     private static final Color ERROR_RED = new Color(0xB00020);
     private static final int STEP_ZONE = 32;          // width of the - and + click areas inside the QTY cell
@@ -61,7 +60,6 @@ public class OrderEntryPanel extends JPanel {
     private final JLabel lblTotal = valueLabel(22f, Font.BOLD);
     private final JCheckBox chkDiscount = new JCheckBox("APPLY 10% DISCOUNT (SENIOR / PWD)");
 
-    private BlackButton btnRemove;
     private BlackButton btnClear;
     private BlackButton btnPay;
 
@@ -123,14 +121,11 @@ public class OrderEntryPanel extends JPanel {
         tableHolder.add(scroll, "table");
         tableHolder.add(empty, "empty");
 
-        // buttons under the table
-        btnRemove = smallButton("REMOVE ITEM", 140, this::removeSelected);
-        btnRemove.setToolTipText("Remove the selected item (DELETE key)");
+        // button under the table (items are removed with the trash icon in each row)
         btnClear = smallButton("CLEAR ORDER", 140, this::clearOrder);
 
         JPanel tools = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         tools.setOpaque(false);
-        tools.add(btnRemove);
         tools.add(btnClear);
         tools.add(UITheme.label("TIP: USE - / + ON A ROW, OR DOUBLE-CLICK THE NUMBER TO TYPE IT", Font.PLAIN, 10f, 0.15f, UITheme.GRAY));
 
@@ -287,11 +282,15 @@ public class OrderEntryPanel extends JPanel {
         };
         table.setDefaultRenderer(String.class, cell);
         table.getColumnModel().getColumn(QTY_COLUMN).setCellRenderer(new QtyRenderer());
+        table.getColumnModel().getColumn(DELETE_COLUMN).setCellRenderer(new TrashRenderer());
 
-        int[] widths = {80, 300, 110, 140, 120};
+        int[] widths = {80, 280, 110, 140, 120, 56};
         for (int i = 0; i < widths.length; i++) {
             table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
+        // the trash column keeps a fixed width
+        table.getColumnModel().getColumn(DELETE_COLUMN).setMinWidth(56);
+        table.getColumnModel().getColumn(DELETE_COLUMN).setMaxWidth(56);
 
         // QTY editor: styled like the table, right aligned, selects the old number so typing replaces it
         final JTextField editorField = new JTextField();
@@ -355,10 +354,17 @@ public class OrderEntryPanel extends JPanel {
             if (!e.getValueIsAdjusting()) updateButtons();
         });
 
-        // Clicking - or + inside a row changes that row's quantity
+        // Clicking - or + inside a row changes that row's quantity;
+        // clicking the trash icon removes that row
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                int trashRow = trashRowAt(e);
+                if (trashRow >= 0) {
+                    table.setRowSelectionInterval(trashRow, trashRow);
+                    removeSelected();
+                    return;
+                }
                 int zone = onStepZone(e);
                 if (zone == 0) return;
                 int row = table.rowAtPoint(e.getPoint());
@@ -369,8 +375,8 @@ public class OrderEntryPanel extends JPanel {
         table.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
-                table.setCursor(Cursor.getPredefinedCursor(
-                        onStepZone(e) != 0 ? Cursor.HAND_CURSOR : Cursor.DEFAULT_CURSOR));
+                boolean hand = onStepZone(e) != 0 || trashRowAt(e) >= 0;
+                table.setCursor(Cursor.getPredefinedCursor(hand ? Cursor.HAND_CURSOR : Cursor.DEFAULT_CURSOR));
             }
         });
 
@@ -380,6 +386,14 @@ public class OrderEntryPanel extends JPanel {
             private static final long serialVersionUID = 1L;
             @Override public void actionPerformed(java.awt.event.ActionEvent e) { removeSelected(); }
         });
+    }
+
+    /* The row whose trash icon is under the mouse, or -1 if the mouse is anywhere else. */
+    private int trashRowAt(MouseEvent e) {
+        int row = table.rowAtPoint(e.getPoint());
+        int col = table.columnAtPoint(e.getPoint());
+        if (row < 0 || col != DELETE_COLUMN || row >= order.getItems().size()) return -1;
+        return row;
     }
 
     /* -1 if the mouse is on a row's "-", +1 if on its "+", 0 anywhere else. */
@@ -431,6 +445,46 @@ public class OrderEntryPanel extends JPanel {
         }
     }
 
+    /* Draws a small trash can in the last column. Clicks are handled by the table's mouse listener. */
+    private static class TrashRenderer extends JPanel implements TableCellRenderer {
+        private static final long serialVersionUID = 1L;
+
+        TrashRenderer() {
+            setOpaque(true);
+            setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, LINE));
+            setToolTipText("Remove this item");
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable t, Object v, boolean sel,
+                                                       boolean focus, int row, int col) {
+            setBackground(sel ? t.getSelectionBackground() : UITheme.BG);
+            return this;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+            g2.setColor(UITheme.BLACK);
+            g2.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
+            int cx = getWidth() / 2;
+            int cy = (getHeight() - 1) / 2;       // minus 1 for the bottom separator line
+            int top = cy - 9;
+
+            g2.drawLine(cx - 8, top + 3, cx + 8, top + 3);            // lid
+            g2.drawRect(cx - 3, top, 6, 3);                           // handle
+            g2.drawPolygon(new int[]{cx - 6, cx + 6, cx + 5, cx - 5}, // body
+                           new int[]{top + 6, top + 6, top + 18, top + 18}, 4);
+            g2.drawLine(cx - 2, top + 9, cx - 2, top + 15);           // ribs
+            g2.drawLine(cx + 2, top + 9, cx + 2, top + 15);
+            g2.dispose();
+        }
+    }
+
     // ---------- Actions ----------
 
     private void changeQuantity(int delta) {
@@ -476,7 +530,7 @@ public class OrderEntryPanel extends JPanel {
         if (t.isEmpty()) return "Enter a quantity, for example 2.";
         if (!t.matches("\\d+")) return "Quantity must be a whole number, for example 2.";
         try {
-            if (Integer.parseInt(t) < 1) return "Quantity must be at least 1. Use REMOVE ITEM to delete it.";
+            if (Integer.parseInt(t) < 1) return "Quantity must be at least 1. Use the trash icon to remove it.";
         } catch (NumberFormatException ex) {
             return "That number is too large.";
         }
@@ -602,10 +656,8 @@ public class OrderEntryPanel extends JPanel {
 
     /* Greys out buttons that cannot do anything right now. */
     private void updateButtons() {
-        if (btnRemove == null || btnClear == null || btnPay == null) return;
+        if (btnClear == null || btnPay == null) return;
         boolean empty = order.getItems().isEmpty();
-        boolean selected = table.getSelectedRow() >= 0 && !empty;
-        btnRemove.setEnabled(selected);
         btnClear.setEnabled(!empty);
         btnPay.setEnabled(!empty);
     }
@@ -630,7 +682,7 @@ public class OrderEntryPanel extends JPanel {
                 case 2: return UITheme.money(item.getProduct().getPrice());
                 case 3: return String.valueOf(item.getQuantity());
                 case 4: return UITheme.money(item.getLineTotal());
-                default: return "";
+                default: return "";          // trash column: the renderer draws the icon
             }
         }
 

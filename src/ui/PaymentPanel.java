@@ -21,7 +21,8 @@ import model.Sale;
 /*
  * Payment screen (cash only):
  *   - left: the items being paid for
- *   - right: bill summary, "amount received" field, live change, COMPLETE PAYMENT
+ *   - right: bill summary, "amount received" field, live change, COMPLETE PAYMENT,
+ *            and a BACK TO ORDER button
  *
  * Input rules:
  *   - the field only accepts digits and one decimal point (max 2 decimals), so letters never get in
@@ -188,11 +189,9 @@ public class PaymentPanel extends JPanel {
         btnPay.setAlignmentX(LEFT_ALIGNMENT);
         btnPay.addActionListener(e -> pay());
         box.add(btnPay);
-        box.add(Box.createVerticalStrut(16));
+        box.add(Box.createVerticalStrut(12));
 
-        JLabel back = UITheme.link("BACK TO ORDER", onBack);
-        back.setAlignmentX(LEFT_ALIGNMENT);
-        box.add(back);
+        box.add(buildBackButton());
 
         JPanel wrap = new JPanel(new BorderLayout());
         wrap.setOpaque(false);
@@ -200,6 +199,25 @@ public class PaymentPanel extends JPanel {
         wrap.setBorder(BorderFactory.createEmptyBorder(0, 0, 40, 60));
         wrap.add(box, BorderLayout.NORTH);
         return wrap;
+    }
+
+    /* Outlined button (white, black border) so it reads as secondary to COMPLETE PAYMENT. */
+    private JButton buildBackButton() {
+        JButton back = new JButton("\u2190  BACK TO ORDER");
+        back.setFont(UITheme.font(Font.BOLD, 12f, 0.12f));
+        back.setForeground(UITheme.BLACK);
+        back.setBackground(Color.WHITE);
+        back.setFocusPainted(false);
+        back.setBorder(BorderFactory.createLineBorder(UITheme.BLACK, 1));
+        back.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        back.setPreferredSize(new Dimension(RIGHT_WIDTH, 44));
+        back.setMaximumSize(new Dimension(RIGHT_WIDTH, 44));
+        back.setAlignmentX(LEFT_ALIGNMENT);
+        back.setToolTipText("Return to the order to change items or quantities");
+        back.addActionListener(e -> {
+            if (!paying) onBack.run();      // never leave while a payment is running
+        });
+        return back;
     }
 
     private JPanel summaryRow(String caption, JLabel value) {
