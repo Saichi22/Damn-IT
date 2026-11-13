@@ -45,13 +45,13 @@ public final class ProductCatalog {
                 "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/482556/item/goods_58_482556_3x4.jpg"));
         list.add(new Product("UQ015", "Utility Backpack", "Bags", "IT", 790.0, 40,
                 "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/488858/item/goods_56_488858_3x4.jpg"));
-        list.add(new Product("UQ016", "Fluffy Yarn Fleece Full-Zip Jacket", "Outerwear", "MEN", 2990.0, 8,
+        list.add(new Product("UQ016", "Fluffy Yarn Fleece Full-Zip Jacket", "Outerwear", "KIDS", 2990.0, 8,
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/478168/item/phgoods_10_478168_3x4.jpg"));
-        list.add(new Product("UQ017", "Cotton Color Crew Neck T-Shirt", "T-Shirts", "MEN", 790.0, 15,
+        list.add(new Product("UQ017", "Cotton Color Crew Neck T-Shirt", "T-Shirts", "KIDS", 790.0, 15,
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/483432/item/phgoods_10_483432_3x4.jpg"));
-        list.add(new Product("UQ018", "Easy Shorts (Twill)", "Shorts & Skorts", "MEN", 990.0, 22,
+        list.add(new Product("UQ018", "Easy Shorts (Twill)", "Shorts & Skorts", "KIDS", 990.0, 22,
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/465112/item/phgoods_31_465112_3x4.jpg"));
-        list.add(new Product("UQ019", "Cotton Mesh Bodysuit Sleeveless", "Innerwear", "WOMEN", 1090.0, 5,
+        list.add(new Product("UQ019", "Cotton Mesh Bodysuit Sleeveless", "Innerwear", "KIDS", 1090.0, 5,
                 "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/481764/item/goods_12_481764_3x4.jpg"));
         list.add(new Product("UQ020", "BABY Toddler PUFFTECH Washable Parka", "Outerwear", "KIDS", 2390.0, 35,
                 "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/486416/item/goods_11_486416_3x4.jpg"));
@@ -77,11 +77,11 @@ public final class ProductCatalog {
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/481582/item/phgoods_31_481582_3x4.jpg"));
         list.add(new Product("UQ031", "2 Way One Handle Bag", "Bags", "IT", 490.0, 24,
                 "https://image.uniqlo.com/UQ/ST3/AsianCommon/imagesgoods/486771/item/goods_32_486771_3x4.jpg"));
-        list.add(new Product("UQ032", "Fleece Full-Zip Jacket", "Outerwear", "MEN", 2990.0, 18,
+        list.add(new Product("UQ032", "Fleece Full-Zip Jacket", "Outerwear", "KIDS", 2990.0, 18,
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/486660/item/phgoods_27_486660_3x4.jpg"));
-        list.add(new Product("UQ033", "AIRism Cotton Graphic Crew Neck T-Shirt", "T-Shirts", "MEN", 790.0, 30,
+        list.add(new Product("UQ033", "AIRism Cotton Graphic Crew Neck T-Shirt", "T-Shirts", "KIDS", 790.0, 30,
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/489218/item/phgoods_01_489218_3x4.jpg"));
-        list.add(new Product("UQ034", "Geared Shorts", "Shorts & Skorts", "MEN", 790.0, 12,
+        list.add(new Product("UQ034", "Geared Shorts", "Shorts & Skorts", "KIDS", 790.0, 12,
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/483406/item/phgoods_30_483406_3x4.jpg"));
         list.add(new Product("UQ035", "Zip Up Short Jacket Denim", "Outerwear", "WOMEN", 1990.0, 40,
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/488787/item/phgoods_69_488787_3x4.jpg"));
@@ -131,9 +131,9 @@ public final class ProductCatalog {
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/475386/item/phgoods_19_475386_3x4.jpg"));
         list.add(new Product("UQ058", "Ultra Stretch Sweat Shorts", "Shorts & Skorts", "MEN", 790.0, 22,
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/485856/item/phgoods_58_485856_3x4.jpg"));
-        list.add(new Product("UQ059", "PUFFTECH Washable Parka", "Outerwear", "MEN", 3990.0, 5,
+        list.add(new Product("UQ059", "PUFFTECH Washable Parka", "Outerwear", "KIDS", 3990.0, 5,
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/491181/item/phgoods_10_491181_3x4.jpg"));
-        list.add(new Product("UQ060", "AIRism Cotton Crew Neck T-Shirt", "T-Shirts", "MEN", 990.0, 35,
+        list.add(new Product("UQ060", "AIRism Cotton Crew Neck T-Shirt", "T-Shirts", "KIDS", 990.0, 35,
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/474592/item/phgoods_11_474592_3x4.jpg"));
         list.add(new Product("UQ061", "GIRLS Easy Shorts", "Shorts & Skorts", "KIDS", 590.0, 24,
                 "https://image.uniqlo.com/UQ/ST3/ph/imagesgoods/483395/item/phgoods_10_483395_3x4.jpg"));
