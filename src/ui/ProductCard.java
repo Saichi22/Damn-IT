@@ -12,12 +12,17 @@ public class ProductCard extends JPanel {
     private static final Color LOW_STOCK = new Color(0xB00020);
     private BufferedImage image;
     private final JPanel imageBox;
+    private final Product product;
+    private final JLabel stock;
+    private final CardLayout actionCards = new CardLayout();
+    private final JPanel actionWrap = new JPanel(actionCards);
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Create the panel.
 	 */
 	public ProductCard(Product product, Consumer<Product> onAdd) {
+        this.product = product;
         setOpaque(false);
         setLayout(new BorderLayout());
  
@@ -58,7 +63,7 @@ public class ProductCard extends JPanel {
         name.setMaximumSize(new Dimension(Short.MAX_VALUE, 36));
  
         JLabel price = UITheme.label(UITheme.money(product.getPrice()), Font.PLAIN, 13f, 0.05f, UITheme.BLACK);
-        JLabel stock = UITheme.label(stockText(product), Font.PLAIN, 10f, 0.15f,
+        stock = UITheme.label(stockText(product), Font.PLAIN, 10f, 0.15f,
                 product.getStock() <= 5 ? LOW_STOCK : UITheme.GRAY);
         JPanel priceRow = new JPanel(new BorderLayout());
         priceRow.setOpaque(false);
@@ -77,24 +82,24 @@ public class ProductCard extends JPanel {
         text.add(Box.createVerticalStrut(6));
         text.add(priceRow);
  
-        // ----- action: ADD button, or SOLD OUT label -----
-        JComponent action;
-        if (product.getStock() <= 0) {
-            JLabel sold = UITheme.label("SOLD OUT", Font.BOLD, 12f, 0.2f, UITheme.GRAY);
-            sold.setHorizontalAlignment(SwingConstants.CENTER);
-            sold.setBorder(BorderFactory.createLineBorder(UITheme.GRAY));
-            sold.setPreferredSize(new Dimension(10, 38));
-            action = sold;
-        } else {
-            BlackButton add = new BlackButton("ADD TO ORDER");
-            add.setFont(UITheme.font(Font.BOLD, 11f, 0.15f));
-            add.addActionListener(e -> onAdd.accept(product));
-            action = add;
-        }
-        JPanel actionWrap = new JPanel(new BorderLayout());
+        // ----- action: ADD button or SOLD OUT label (both built once; refreshStock() shows one) -----
+        JLabel sold = UITheme.label("SOLD OUT", Font.BOLD, 12f, 0.2f, UITheme.GRAY);
+        sold.setHorizontalAlignment(SwingConstants.CENTER);
+        sold.setBorder(BorderFactory.createLineBorder(UITheme.GRAY));
+        sold.setPreferredSize(new Dimension(10, 38));
+
+        BlackButton add = new BlackButton("ADD TO ORDER");
+        add.setFont(UITheme.font(Font.BOLD, 11f, 0.15f));
+        add.addActionListener(e -> {
+            onAdd.accept(product);
+            refreshStock();              // the stock number follows what was just added
+        });
+
         actionWrap.setOpaque(false);
         actionWrap.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-        actionWrap.add(action, BorderLayout.CENTER);
+        actionWrap.add(add, "add");
+        actionWrap.add(sold, "sold");
+        refreshStock();
  
         JPanel info = new JPanel(new BorderLayout());
         info.setOpaque(false);
@@ -112,6 +117,13 @@ public class ProductCard extends JPanel {
         });
     }
  
+
+	/* Updates the stock text and swaps ADD TO ORDER for SOLD OUT when nothing is left. */
+    public void refreshStock() {
+        stock.setText(stockText(product));
+        stock.setForeground(product.getStock() <= 5 ? LOW_STOCK : UITheme.GRAY);
+        actionCards.show(actionWrap, product.getStock() <= 0 ? "sold" : "add");
+    }
 
 	private static String stockText(Product p) {
         if (p.getStock() <= 0) return "OUT OF STOCK";

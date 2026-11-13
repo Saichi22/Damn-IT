@@ -109,7 +109,7 @@ public class AuthFrame extends JFrame {
  
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 28, 0));
         right.setOpaque(false);
-        for (String s : new String[]{"SEARCH", "WISHLIST", "CART"}) {
+        for (String s : new String[]{"SEARCH", "WISHLIST", "ORDER"}) {
             right.add(navLabel(s));
         }
  

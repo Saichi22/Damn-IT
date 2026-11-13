@@ -24,7 +24,7 @@ public final class UITheme {
     public static final Color BG = new Color(0xE4E3E0);     // light gray page background
     public static final Color BLACK = Color.BLACK;
     public static final Color GRAY = new Color(0x6B6B68);   // small captions
-    public static final Color HOVER = new Color(0x333333);  // button hover
+    public static final Color HOVER = new Color(0x5E5E5B);  // button hover (clearly lighter than black)
  
     private static final String FAMILY = pickFamily();
  

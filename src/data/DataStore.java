@@ -7,7 +7,6 @@ import exception.InsufficientPaymentException;
 import exception.OutOfStockException;
 import model.Account;
 import model.Order;
-import model.OrderItem;
 import model.Product;
 import model.Sale;
 
@@ -50,7 +49,7 @@ public class DataStore {
     /*
      * Completes a sale in one step:
      *   1) validates the inputs, 2) re-checks stock, 3) checks the payment covers the total,
-     *   4) builds the Sale record, 5) lowers the stock of every product, 6) saves the sale.
+     *   4) builds the Sale record, 5) saves the sale (stock was already lowered by Order).
      * Nothing is changed if a check fails. The caller clears the order afterwards.
      */
     public static synchronized Sale completeSale(Order order, double tendered, Account cashier)
@@ -77,10 +76,8 @@ public class DataStore {
         // Build the record first: if this fails, stock is untouched.
         Sale sale = new Sale(String.format("R%04d", receiptCounter), cashier.getFullName(), order, tendered);
 
-        for (OrderItem item : order.getItems()) {
-            Product p = item.getProduct();
-            p.setStock(p.getStock() - item.getQuantity());
-        }
+        // Stock was already taken out when each item was added to the order,
+        // so it is NOT lowered again here.
         receiptCounter++;      // only consumed once the sale really happened
         sales.add(sale);
         return sale;

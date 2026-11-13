@@ -44,7 +44,7 @@ public class OrderEntryPanel extends JPanel {
     private static final int MAX_QTY_DIGITS = 4;      // longest quantity that can be typed
 
     private final Order order;
-    private final Runnable onChange;        // lets StoreFrame update CART (3)
+    private final Runnable onChange;        // lets StoreFrame update ORDER (3)
     private final Runnable onBackToShop;
     private final Runnable onCheckout;
 
@@ -534,7 +534,7 @@ public class OrderEntryPanel extends JPanel {
         int choice = JOptionPane.showConfirmDialog(this, "Remove every item from the order?",
                 "Clear order", JOptionPane.YES_NO_OPTION);
         if (choice == JOptionPane.YES_OPTION) {
-            order.clear();
+            order.releaseAll();          // gives the stock back
             refresh(-1);
         }
     }
