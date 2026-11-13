@@ -13,27 +13,26 @@ public class Order {
     public ArrayList<OrderItem> getItems() { return items; }
 
     /*
-     * Adds an item. If the product is already in the order,
-     * the quantities are combined. Checks stock before adding.
+     * Adds an item and takes it out of the product's stock right away.
+     * If the product is already in the order, the quantities are combined.
+     * p.getStock() is what is still free to add, so the check is simply qty <= stock.
      */
     public void addItem(Product p, int qty) throws OutOfStockException, InvalidQuantityException {
         if (qty <= 0) {
             throw new InvalidQuantityException("Quantity must be at least 1.");
         }
-        for (OrderItem item : items) {
-            if (item.getProduct().getId().equals(p.getId())) {
-                int newQty = item.getQuantity() + qty;
-                if (newQty > p.getStock()) {
-                    throw new OutOfStockException("Only " + p.getStock() + " left for " + p.getName());
-                }
-                item.setQuantity(newQty);
-                return;
-            }
-        }
         if (qty > p.getStock()) {
             throw new OutOfStockException("Only " + p.getStock() + " left for " + p.getName());
         }
+        for (OrderItem item : items) {
+            if (item.getProduct().getId().equals(p.getId())) {
+                item.setQuantity(item.getQuantity() + qty);
+                p.setStock(p.getStock() - qty);
+                return;
+            }
+        }
         items.add(new OrderItem(p, qty));
+        p.setStock(p.getStock() - qty);
     }
 
     /* Sets an exact quantity for the item at this row. Checks stock. */
@@ -45,32 +44,51 @@ public class Order {
             throw new InvalidQuantityException("Quantity must be at least 1. Use REMOVE ITEM to delete it.");
         }
         OrderItem item = items.get(index);
-        if (qty > item.getProduct().getStock()) {
-            throw new OutOfStockException("Only " + item.getProduct().getStock()
-                    + " left for " + item.getProduct().getName());
+        Product p = item.getProduct();
+        int extra = qty - item.getQuantity();      // more (+) or fewer (-) than before
+        if (extra > p.getStock()) {
+            throw new OutOfStockException("Only " + (p.getStock() + item.getQuantity())
+                    + " available for " + p.getName());
         }
+        p.setStock(p.getStock() - extra);          // fewer in the order gives stock back
         item.setQuantity(qty);
     }
 
-    /* Re-checks every line against current stock. Call right before payment. */
+    /*
+     * Stock is already taken out when an item is added, so every line is covered.
+     * This only guards against a stock figure that went below zero.
+     */
     public void validateStock() throws OutOfStockException {
         for (OrderItem item : items) {
             Product p = item.getProduct();
-            if (item.getQuantity() > p.getStock()) {
-                throw new OutOfStockException("Only " + p.getStock() + " left for " + p.getName());
+            if (p.getStock() < 0) {
+                throw new OutOfStockException("Not enough stock for " + p.getName());
             }
         }
     }
 
+    /* Removes one line and gives its quantity back to the stock. */
     public void removeItem(int index) {
         if (index < 0 || index >= items.size()) return;
-        items.remove(index);
+        OrderItem item = items.remove(index);
+        Product p = item.getProduct();
+        p.setStock(p.getStock() + item.getQuantity());
         if (items.isEmpty()) discountApplied = false;   // empty order = no leftover discount
     }
 
+    /* Empties the order WITHOUT giving stock back. Use only after a completed sale. */
     public void clear() {
         items.clear();
         discountApplied = false;
+    }
+
+    /* Cancels the order: gives every item's quantity back to the stock, then empties it. */
+    public void releaseAll() {
+        for (OrderItem item : items) {
+            Product p = item.getProduct();
+            p.setStock(p.getStock() + item.getQuantity());
+        }
+        clear();
     }
 
     public boolean isDiscountApplied() { return discountApplied; }

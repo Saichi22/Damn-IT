@@ -59,7 +59,7 @@ public class HeroPanel extends JPanel {
 	        if (model != null) {
 	            int mh = (int) (h * 0.95);
 	            int mw = (int) (model.getWidth() * ((double) mh / model.getHeight()));
-	            g2.drawImage(model, (int) (w * 0.62) - mw / 2, (int) (h * 0.1), mw, mh, null);
+	            g2.drawImage(model, (int) (w * 0.67) - mw / 2, (int) (h * 0.1), mw, mh, null);
 	        }
 	        g2.dispose();
 	    }

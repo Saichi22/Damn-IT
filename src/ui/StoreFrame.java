@@ -72,7 +72,7 @@ public class StoreFrame extends JFrame {
 
         header = new HeaderBar(
                 new String[]{"MEN", "WOMEN", "KIDS", "IT"},
-                new String[]{"SEARCH", "CART", "PROFILE", "LOG OUT"},
+                new String[]{"SEARCH", "ORDER", "PROFILE"},
                 this::onNav,
                 this::goHome);
         buildStrip();
@@ -82,7 +82,7 @@ public class StoreFrame extends JFrame {
         center.add(new HeroPanel(() -> showShop(null, true)), HOME);
         center.add(buildShop(), SHOP);
         orderEntry = new OrderEntryPanel(order,
-                this::updateCartLabel,
+                this::updateOrderLabel,
                 () -> showShop(section, false),
                 this::goToPayment);
         center.add(orderEntry, ORDER);
@@ -114,6 +114,10 @@ public class StoreFrame extends JFrame {
         JPanel strip = header.getStrip();
         strip.add(UITheme.label("CASHIER: " + cashier.getFullName().toUpperCase(),
                 Font.PLAIN, 10f, 0.2f, Color.WHITE));
+        JLabel logoutLink = UITheme.link("LOG OUT", this::logout);
+        logoutLink.setForeground(Color.WHITE);
+        logoutLink.setFont(UITheme.font(Font.PLAIN, 10f, 0.2f));
+        strip.add(logoutLink);
     }
     
     private void showProfile() {
@@ -130,10 +134,10 @@ public class StoreFrame extends JFrame {
                 showShop(key, true);
                 break;
             case "SEARCH":
-                showShop(section, false);
+                showShop(null, true);          // all products, empty search box
                 txtSearch.requestFocusInWindow();
                 break;
-            case "CART":
+            case "ORDER":
                 showOrder();
                 break;
             case "PROFILE":
@@ -157,6 +161,7 @@ public class StoreFrame extends JFrame {
                 order.getItems().isEmpty() ? "Log out?" : "Log out? The current order will be lost.",
                 "Log out", JOptionPane.YES_NO_OPTION);
         if (choice == JOptionPane.YES_OPTION) {
+            order.releaseAll();        // the unpaid order's items go back to stock
             dispose();
             new AuthFrame().setVisible(true);
         }
@@ -270,7 +275,7 @@ public class StoreFrame extends JFrame {
     private void addToOrder(Product p) {
         try {
             order.addItem(p, 1);
-            updateCartLabel();
+            updateOrderLabel();
         } catch (OutOfStockException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Out of stock", JOptionPane.WARNING_MESSAGE);
         } catch (InvalidQuantityException ex) {
@@ -278,14 +283,14 @@ public class StoreFrame extends JFrame {
         }
     }
 
-    private void updateCartLabel() {
+    private void updateOrderLabel() {
         int qty = 0;
         for (OrderItem item : order.getItems()) qty += item.getQuantity();
-        header.setLabelText("CART", qty == 0 ? "CART" : "CART (" + qty + ")");
+        header.setLabelText("ORDER", qty == 0 ? "ORDER" : "ORDER (" + qty + ")");
     }
 
     private void showOrder() {
-        header.setActive("CART");
+        header.setActive("ORDER");
         orderEntry.refresh();
         cards.show(center, ORDER);
     }
@@ -294,7 +299,7 @@ public class StoreFrame extends JFrame {
 
     /* PROCEED TO PAYMENT on the order screen lands here. */
     private void goToPayment() {
-        header.setActive("CART");
+        header.setActive("ORDER");
         paymentPanel.refresh();
         cards.show(center, PAYMENT);
     }
@@ -302,7 +307,7 @@ public class StoreFrame extends JFrame {
     /* Called by PaymentPanel after DataStore.completeSale() succeeded. */
     private void onPaid(Sale sale) {
         order.clear();              // otherwise the same items could be paid twice
-        orderEntry.refresh();       // also updates the CART label
+        orderEntry.refresh();       // also updates the ORDER label
         receiptPanel.show(sale);
         header.setActive(null);
         cards.show(center, RECEIPT);
