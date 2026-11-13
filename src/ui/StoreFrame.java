@@ -72,7 +72,7 @@ public class StoreFrame extends JFrame {
 
         header = new HeaderBar(
                 new String[]{"MEN", "WOMEN", "KIDS", "IT"},
-                new String[]{"SEARCH", "ORDER", "PROFILE", "LOG OUT"},
+                new String[]{"SEARCH", "ORDER", "PROFILE"},
                 this::onNav,
                 this::goHome);
         buildStrip();
@@ -114,6 +114,10 @@ public class StoreFrame extends JFrame {
         JPanel strip = header.getStrip();
         strip.add(UITheme.label("CASHIER: " + cashier.getFullName().toUpperCase(),
                 Font.PLAIN, 10f, 0.2f, Color.WHITE));
+        JLabel logoutLink = UITheme.link("LOG OUT", this::logout);
+        logoutLink.setForeground(Color.WHITE);
+        logoutLink.setFont(UITheme.font(Font.PLAIN, 10f, 0.2f));
+        strip.add(logoutLink);
     }
     
     private void showProfile() {
