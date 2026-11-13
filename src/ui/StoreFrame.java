@@ -31,6 +31,7 @@ public class StoreFrame extends JFrame {
     private static final String ORDER = "order";
     private static final String PAYMENT = "payment";
     private static final String RECEIPT = "receipt";
+    private static final String PROFILE = "profile"; // <-- New Profile constant
     private static final String ALL_CATEGORIES = "ALL CATEGORIES";
     private static final int COLUMNS = 4;
     private OrderEntryPanel orderEntry;
@@ -71,7 +72,7 @@ public class StoreFrame extends JFrame {
 
         header = new HeaderBar(
                 new String[]{"MEN", "WOMEN", "KIDS", "IT"},
-                new String[]{"SEARCH", "CART"},
+                new String[]{"SEARCH", "CART", "PROFILE", "LOG OUT"},
                 this::onNav,
                 this::goHome);
         buildStrip();
@@ -91,7 +92,8 @@ public class StoreFrame extends JFrame {
         center.add(paymentPanel, PAYMENT);
         receiptPanel = new ReceiptPanel(() -> showShop(null, true));   // NEW ORDER
         center.add(receiptPanel, RECEIPT);
-        root.add(center, BorderLayout.CENTER);
+        center.add(buildProfile(), PROFILE); // <-- Register Profile card
+        root.add(center, BorderLayout.CENTER); // <-- Keep only one of these!
 
         // Refresh the grid when the person types or picks a category
         txtSearch.getDocument().addDocumentListener(new DocumentListener() {
@@ -108,12 +110,15 @@ public class StoreFrame extends JFrame {
 
     // ---------- Header ----------
 
-    /* Cashier name and LOG OUT inside the black strip. */
     private void buildStrip() {
         JPanel strip = header.getStrip();
         strip.add(UITheme.label("CASHIER: " + cashier.getFullName().toUpperCase(),
                 Font.PLAIN, 10f, 0.2f, Color.WHITE));
-        strip.add(UITheme.link("LOG OUT", this::logout));
+    }
+    
+    private void showProfile() {
+        header.setActive("PROFILE");
+        cards.show(center, PROFILE);
     }
 
     private void onNav(String key) {
@@ -130,6 +135,12 @@ public class StoreFrame extends JFrame {
                 break;
             case "CART":
                 showOrder();
+                break;
+            case "PROFILE":
+                showProfile();
+                break;
+            case "LOG OUT":
+                logout();
                 break;
             default:
                 break;
@@ -307,4 +318,123 @@ public class StoreFrame extends JFrame {
         @Override public boolean getScrollableTracksViewportWidth() { return true; }
         @Override public boolean getScrollableTracksViewportHeight() { return false; }
     }
+    
+ // ---------- Profile view ----------
+
+    private JPanel buildProfile() {
+        JPanel wrapper = new JPanel(new GridBagLayout());
+        wrapper.setOpaque(false);
+
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(Color.WHITE);
+        card.setPreferredSize(new Dimension(440, 540));
+        card.setBorder(BorderFactory.createLineBorder(new Color(0xE0DFDC), 1));
+
+        // 1. Top Avatar / Monogram Box (Matches ProductCard's IMAGE_BG style)
+        String initials = getInitials(cashier.getFullName());
+        JPanel avatarBox = new JPanel() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+                // Subtle watermark brand text
+                g2.setColor(new Color(0x9E9D99));
+                Font brandFont = UITheme.font(Font.BOLD, 11f, 0.35f);
+                g2.setFont(brandFont);
+                g2.drawString("DAMNIT STAFF", 24, 28);
+
+                // Centered Cashier Monogram
+                g2.setColor(UITheme.BLACK);
+                Font monoFont = UITheme.font(Font.BOLD, 36f, 0.2f);
+                g2.setFont(monoFont);
+                FontMetrics fm = g2.getFontMetrics();
+                int tw = fm.stringWidth(initials);
+                int th = fm.getAscent();
+                g2.drawString(initials, (getWidth() - tw) / 2, (getHeight() + th) / 2 - 4);
+                g2.dispose();
+            }
+        };
+        avatarBox.setBackground(new Color(0xF1F0ED));
+        avatarBox.setPreferredSize(new Dimension(440, 150));
+        card.add(avatarBox, BorderLayout.NORTH);
+
+        // 2. Center Account Info Stack
+        JPanel body = new JPanel();
+        body.setOpaque(false);
+        body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+        body.setBorder(BorderFactory.createEmptyBorder(28, 36, 24, 36));
+
+        JLabel lblSection = UITheme.label("STAFF ACCOUNT", Font.PLAIN, 10f, 0.2f, UITheme.GRAY);
+        JLabel lblName = UITheme.label(cashier.getFullName().toUpperCase(), Font.BOLD, 18f, 0.08f, UITheme.BLACK);
+        lblSection.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblName.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        body.add(lblSection);
+        body.add(Box.createVerticalStrut(4));
+        body.add(lblName);
+        body.add(Box.createVerticalStrut(22));
+
+        body.add(profileRow("USERNAME", "@" + cashier.getUsername()));
+        body.add(Box.createVerticalStrut(16));
+        body.add(profileRow("SECURITY QUESTION", cashier.getSecurityQuestion()));
+        body.add(Box.createVerticalStrut(16));
+        body.add(profileRow("SHIFT STATUS", "ACTIVE TERMINAL"));
+
+        card.add(body, BorderLayout.CENTER);
+
+        // 3. Bottom Action Bar (Matching ProductCard's BlackButton style)
+        JPanel actions = new JPanel(new GridLayout(1, 2, 12, 0));
+        actions.setOpaque(false);
+        actions.setBorder(BorderFactory.createEmptyBorder(0, 36, 32, 36));
+
+        JButton btnBack = new JButton("BACK TO STORE");
+        btnBack.setFont(UITheme.font(Font.BOLD, 11f, 0.15f));
+        btnBack.setForeground(UITheme.BLACK);
+        btnBack.setBackground(Color.WHITE);
+        btnBack.setFocusPainted(false);
+        btnBack.setBorder(BorderFactory.createLineBorder(UITheme.BLACK, 1));
+        btnBack.setPreferredSize(new Dimension(10, 40));
+        btnBack.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnBack.addActionListener(e -> goHome());
+
+        BlackButton btnLogout = new BlackButton("LOG OUT");
+        btnLogout.setFont(UITheme.font(Font.BOLD, 11f, 0.15f));
+        btnLogout.setPreferredSize(new Dimension(10, 40));
+        btnLogout.addActionListener(e -> logout());
+
+        actions.add(btnBack);
+        actions.add(btnLogout);
+        card.add(actions, BorderLayout.SOUTH);
+
+        wrapper.add(card);
+        return wrapper;
+    }
+
+    private JPanel profileRow(String labelText, String valueText) {
+        JPanel row = new JPanel(new BorderLayout(0, 4));
+        row.setOpaque(false);
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        row.setMaximumSize(new Dimension(Short.MAX_VALUE, 46));
+        row.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(0xECEBE8)),
+                BorderFactory.createEmptyBorder(0, 0, 8, 0)));
+
+        JLabel lblKey = UITheme.label(labelText, Font.PLAIN, 10f, 0.2f, UITheme.GRAY);
+        JLabel lblVal = UITheme.label(valueText != null ? valueText : "N/A", Font.PLAIN, 13f, 0.05f, UITheme.BLACK);
+
+        row.add(lblKey, BorderLayout.NORTH);
+        row.add(lblVal, BorderLayout.CENTER);
+        return row;
+    }
+
+    private String getInitials(String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) return "ST";
+        String[] parts = fullName.trim().split("\\s+");
+        if (parts.length == 1) return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
+        return ("" + parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+    
 }
